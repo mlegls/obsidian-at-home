@@ -588,7 +588,9 @@ async function hostRootIsLocal(
       ]);
       // Hosts may hide dotfiles from their listings, so compare only the
       // entries both sides are certain to report.
-      const visible = (name: string) => !name.startsWith(".");
+      // The walk skips node_modules too, and hosts may leave it out of listings.
+      const visible = (name: string) =>
+        !name.startsWith(".") && name !== "node_modules";
       const localEntries = new Set(
         local
           .filter((entry) => visible(entry.name))
