@@ -319,7 +319,9 @@ describe("wikilinks server", () => {
     await mkdir(path.join(root, "docs/concepts"), { recursive: true });
     await writeFile(path.join(root, "docs/issues/Issue.md"), "", "utf8");
     await writeFile(path.join(root, "docs/concepts/Term.md"), "", "utf8");
-    const listing = async ({ path: directory }: { path: string }) => ({
+    const listing = async ({ path: requested }: { path?: string | undefined }) => {
+      const directory = requested ?? root;
+      return {
       directory,
       parent: null,
       entries: (await readdir(directory, { withFileTypes: true })).map((entry) => ({
@@ -327,7 +329,8 @@ describe("wikilinks server", () => {
         name: entry.name,
         path: path.join(directory, entry.name),
       })),
-    }) as never;
+      } as never;
+    };
     const { bb, harness } = createFakePluginHost({
       pluginId: "wikilinks",
       sdk: {
