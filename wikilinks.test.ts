@@ -45,6 +45,26 @@ describe("resolveWikilinkPath", () => {
     ).toEqual({ path: "websim/Version 1.2.md", exists: true });
   });
 
+  it("prefers the longest matching path suffix over the shallowest basename", () => {
+    const nested = [
+      "docs/index.md",
+      "docs/attachments/first/index.md",
+      "docs/attachments/second/index.md",
+    ];
+    expect(
+      resolveWikilinkPath("projects/app/attachments/second/index", "docs/issues/a.md", nested),
+    ).toEqual({ path: "docs/attachments/second/index.md", exists: true });
+    expect(
+      resolveWikilinkPath("projects/app/attachments/second/index#Setup", "docs/issues/a.md", nested),
+    ).toEqual({ path: "docs/attachments/second/index.md", exists: true });
+  });
+
+  it("falls back to the shallowest basename when only the name matches", () => {
+    expect(
+      resolveWikilinkPath("elsewhere/Strategy", "Roadmap.md", paths),
+    ).toEqual({ path: "archive/Strategy.md", exists: true });
+  });
+
   it("keeps missing notes clickable at an inferred same-folder path", () => {
     expect(
       resolveWikilinkPath("Future note", "websim/Current note.md", paths),
