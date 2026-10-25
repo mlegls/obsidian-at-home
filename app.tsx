@@ -57,6 +57,12 @@ import { displayWikilinkLabel, parseWikilinkSubpath } from "./wikilink-markdown.
 import { parseMarkdownDocument } from "./markdown-document.js";
 import { mergeThreeWay } from "./three-way-merge.js";
 import {
+  hasSelectionInside,
+  NOTE_SIDE_CHAT_ACTION_ID,
+  NoteSelectionMenu,
+  NoteSideChatPanel,
+} from "./selection-actions.js";
+import {
   clearEditorDraft,
   planDraftRestore,
   readEditorDraft,
@@ -1525,6 +1531,9 @@ function WikilinkFileOpener({ path, source, Original }: PluginFileOpenerProps) {
     ) {
       return;
     }
+    // A click that ends a text selection keeps the preview, so the selection
+    // menu can act on it.
+    if (hasSelectionInside(event.currentTarget)) return;
     setFocusRequest((current) => ({
       left: event.clientX,
       top: event.clientY,
@@ -1647,6 +1656,11 @@ function WikilinkFileOpener({ path, source, Original }: PluginFileOpenerProps) {
           />
         ) : null}
       </div>
+      <NoteSelectionMenu
+        rootRef={activeFileRoot}
+        path={path}
+        threadId={source.threadId ?? null}
+      />
       <ThinkingTrailParent localId={editorVisitLocalId}>
         <HoverPreviewCard
           anchor={hover?.anchor ?? null}
@@ -2348,6 +2362,13 @@ export default definePluginApp((app) => {
     icon: "Route",
     component: ThinkingTrailsPanel,
     layout: "padded",
+  });
+  app.slots.threadPanelAction({
+    id: NOTE_SIDE_CHAT_ACTION_ID,
+    title: "Note side chat",
+    icon: "SideChat",
+    component: NoteSideChatPanel,
+    layout: "flush",
   });
   app.contentScripts.register({
     id: "chat-wikilinks",

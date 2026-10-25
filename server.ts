@@ -318,6 +318,16 @@ export const rpcContract = defineRpcContract({
       )
       .max(12),
   },
+  send_side_chat_to_main: {
+    input: z
+      .object({
+        sourceThreadId: z.string().min(1),
+        sideChatThreadId: z.string().min(1),
+        text: z.string().trim().min(1),
+      })
+      .strict(),
+    output: z.object({}).strict(),
+  },
   record_thinking_trail: {
     input: z.object({ trail: capturedThinkingTrailSchema }).strict(),
     output: z.object({ id: z.number().int().positive() }).strict(),
@@ -1948,6 +1958,14 @@ export default async function plugin(bb: BbPluginApi) {
     },
     async autocomplete_wikilinks({ threadId, source, path, query }) {
       return autocompleteWikilinks(bb, { threadId, source, path }, query);
+    },
+    async send_side_chat_to_main({ sourceThreadId, sideChatThreadId, text }) {
+      await bb.sdk.threads.queuedMessages.create({
+        threadId: sourceThreadId,
+        input: [{ type: "text", text, mentions: [] }],
+        senderThreadId: sideChatThreadId,
+      });
+      return {};
     },
     async record_thinking_trail({ trail }) {
       return { id: recordThinkingTrail(trailDatabase, trail) };
